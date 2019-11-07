@@ -25,7 +25,7 @@ fileName = "recBall1.txt" # Name of the record-file that will be created
 targetFPS = 61
 targetFrametime = 1 / targetFPS
 
-frame_upperBound = 3 * 60 * 60 # number of frames to be computed
+frame_upperBound = 1 * 60 * 60 # number of frames to be computed
 
 objectsizeMax = 80
 objectsizeMin = 30
@@ -34,7 +34,7 @@ rows = math.floor(HEIGHT/objectsizeMax)
 maxBalls = rows * columns
 print("maxBalls: " + str(maxBalls))
 
-noObjects = 80 # maxBalls # Number of balls on the canvas
+noObjects = 50 # maxBalls # Number of balls on the canvas
 print("noObjects: " + str(noObjects))
 initialState = 0 # 0 = balls have random startpos and random velocity vectors
 
