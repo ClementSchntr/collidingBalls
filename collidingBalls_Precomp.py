@@ -4,17 +4,9 @@ Created on Tue Sep 26 14:17:53 2018
 
 @author: Clément
 """
-#import tkinter
-#from tkinter import Tk, Canvas
-import random, time, numpy as np, math
-#from collisionSim_Playback import play
-from scipy.optimize import fsolve
 
-"""
-To Do:
-    -frametime plot
-    -fragment polygons into smaller polygons
-"""
+import random, time, numpy as np, math
+
 
 #canvas size
 WIDTH = 1000
@@ -22,37 +14,35 @@ HEIGHT = 700
 
 fileName = "recBall1.txt" # Name of the record-file that will be created
 
-targetFPS = 61
-targetFrametime = 1 / targetFPS
-
 frame_upperBound = 1 * 60 * 60 # number of frames to be computed
 
-objectsizeMax = 80
+objectsizeMax = 80 # size counted in pixels
 objectsizeMin = 30
-columns = math.floor(WIDTH/objectsizeMax)
+
+columns = math.floor(WIDTH/objectsizeMax) # rows and columns are used to avoid overlapping balls during initial placement.
 rows = math.floor(HEIGHT/objectsizeMax)
+
 maxBalls = rows * columns
 print("maxBalls: " + str(maxBalls))
 
-noObjects = 50 # maxBalls # Number of balls on the canvas
+noObjects = 50  # Number of balls on the canvas
+
+if noObjects > maxBalls:
+    noObjects = maxBalls
+
 print("noObjects: " + str(noObjects))
+
 initialState = 0 # 0 = balls have random startpos and random velocity vectors
 
 
 collision = True #set to true to enable collision between balls
 
-#gravity = False #set to true to enable gravity
 mass = False # set to True for mass to be taken into account in collisions
 
-#gravityStrength = 1 #unit of acceleration: pixel/frame^2
 velocityScale = 3 # scaling factor for the maximum start velocity of each ball
 
 Inf = float("inf") # positive infinity
 
-#tk = Tk()
-#fenster = Canvas(tk, width=WIDTH, height=HEIGHT, bg="white")
-#tk.title("The night is dark and full of terrors")
-#fenster.pack()
 
 rec = open(fileName,'w') 
 
@@ -170,34 +160,16 @@ def createBall():
     return Ball(color, startPos, speed, size)
     
 def col(i, j): # process collision between ith and jth ball
-    if j < 0 :
-        pol = balls[i]
-        
-#        pol.speed *= -1
-        vert = pol.vertices()
-        k = colCorners[int(i),int(j+4)]
-        colDir = normalize(vert[int(k)])
-#    colDir = normalize((balls[j].centre() - balls[i].centre())) # normed direction vector from i to j
-        perpDir = np.dot(np.array([[0,-1],[1,0]]) ,colDir) # normed vector perpendicular to colDir. Optained by pi/2 rotation
-
-        colVelocity = np.dot(colDir, pol.speed) 
-        perpVelocity = np.dot(perpDir, pol.speed)
-        if colVelocity > 0 :
-            pol.av = - pol.av
-            pol.R = rotMat(pol.av)
-            pol.speed = (perpVelocity * perpDir - colVelocity * colDir)
-#            balls[j].speed = (perpVelocity[1] * balls[j].mass * perpDir + colVelocity[0] * balls[i].mass * colDir) / balls[j].mass
-    else:
-        colDir = normalize((balls[j].centre() - balls[i].centre())) # normed direction vector from i to j
-        perpDir = np.dot(np.array([[0,-1],[1,0]]) ,colDir) # normed vector perpendicular to colDir. Optained by pi/2 rotation
-        colVelocity = [] 
-        perpVelocity = [] 
-        for b in [balls[i], balls[j]]: # decomposition of velocity vectors into 'collision' and 'perpendicular' components
-            colVelocity.append(np.dot(colDir, b.speed))
-            perpVelocity.append(np.dot(perpDir, b.speed))
-        if colVelocity[0] > colVelocity[1] :
-            balls[i].speed = (perpVelocity[0] * balls[i].mass * perpDir + colVelocity[1] * balls[j].mass * colDir) / balls[i].mass
-            balls[j].speed = (perpVelocity[1] * balls[j].mass * perpDir + colVelocity[0] * balls[i].mass * colDir) / balls[j].mass
+    colDir = normalize((balls[j].centre() - balls[i].centre())) # normed direction vector from i to j
+    perpDir = np.dot(np.array([[0,-1],[1,0]]) ,colDir) # normed vector perpendicular to colDir. Optained by pi/2 rotation
+    colVelocity = [] 
+    perpVelocity = [] 
+    for b in [balls[i], balls[j]]: # decomposition of velocity vectors into 'collision' and 'perpendicular' components
+        colVelocity.append(np.dot(colDir, b.speed))
+        perpVelocity.append(np.dot(perpDir, b.speed))
+    if colVelocity[0] > colVelocity[1] :
+        balls[i].speed = (perpVelocity[0] * balls[i].mass * perpDir + colVelocity[1] * balls[j].mass * colDir) / balls[i].mass
+        balls[j].speed = (perpVelocity[1] * balls[j].mass * perpDir + colVelocity[0] * balls[i].mass * colDir) / balls[j].mass
 
     
     
@@ -253,7 +225,7 @@ t3 = 0
 colCounter = 0
 computeSum = 0
 maxComputeTime = 0
-minFPSuncapped = Inf #100000
+minFPSuncapped = Inf 
 
 #additionToColList = 0
 colList = [] # list of tuples (i,j). Stores the object pairs(indices) that will collide before the next frame
@@ -265,7 +237,6 @@ distMat = np.zeros((noObjects,noObjects)) # distance matrix: store distances bet
 
             
 colPro = 0 #collision processing counter
-# preprocessing
 
 
 
@@ -297,8 +268,8 @@ while frameCounter <= frame_upperBound:
         minFPSuncapped = 1 / maxComputeTime
     
     computeSum = computeSum + computeTime
-    avgComputeTime = computeSum / frameCounter
-    avgFPSuncapped = 1 / avgComputeTime
+    avgComputeTimePerFrame = computeSum / frameCounter
+    avgFPSuncapped = 1 / avgComputeTimePerFrame
     avgColperFrame = colCounter / frameCounter 
     
     
@@ -308,4 +279,3 @@ while frameCounter <= frame_upperBound:
 rec.close()
 print("completed\n"+str(frameCounter)+ " frames were computed in " + str(t3)[:math.floor(abs(math.log10(t3)))+2] + " seconds")
 
-#play()
