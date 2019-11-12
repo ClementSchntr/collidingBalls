@@ -2,7 +2,7 @@
 This program displays moving balls that will collide with each other in a new window.
 
 ## Prerequisites
-Running this programm requires Python 3 as well as the modules tkinter, time, math, random and numpy.
+Running this programm requires Python 3 with the modules tkinter, time, math, random and numpy.
 
 ## How to run
 To see the result execute the play.py file.
